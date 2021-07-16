@@ -1,3 +1,4 @@
+
 pipeline {
   //Donde se va a ejecutar el Pipeline
   agent {
@@ -27,34 +28,34 @@ pipeline {
 
   //Aquí comienzan los “items” del Pipeline
   stages{
-	stage('Checkout'){
-	steps{
-		echo "------------>Checkout<------------"
-		checkout([
-			$class: 'GitSCM', 
-			branches: [[name: '*/master']], 
-			doGenerateSubmoduleConfigurations: false, 
-			extensions: [], 
-			gitTool: 'Default', 
-			submoduleCfg: [], 
-			userRemoteConfigs: [[
-                	credentialsId: 'GitHub_josecortazar', 
-                	url:'https://github.com/josecortazar/estacionamiento'
-				]]
-			])
+    stage('Checkout'){
+        steps{
+            echo "------------>Checkout<------------"
+            checkout([
+                $class: 'GitSCM', 
+                branches: [[name: '*/master']], 
+                doGenerateSubmoduleConfigurations: false, 
+                extensions: [], 
+                gitTool: 'Default', 
+                submoduleCfg: [], 
+                userRemoteConfigs: [[
+                    credentialsId: 'GitHub_josecortazar', 
+                    url:'https://github.com/josecortazar/estacionamiento'
+            	]]
+        	])
+   		}
+	}
+
+	stage('Compile & Unit Tests') {
+		steps{
+			sh 'sudo ./gradlew clean'
+			echo "------------>compile & Unit Tests<------------"
+			sh 'sudo chmod +x gradlew'
+			sh 'sudo ./gradlew --b ./build.gradle test'
 		}
 	}
 
-    
-	stage('Compile & Unit Tests') {
-		steps{
-			sh './gradlew clean'
-			echo "------------>compile & Unit Tests<------------"
-			sh 'chmod +x gradlew'
-			sh './gradlew --b ./build.gradle test'
-		}
-	}
-	
+
     stage('Static Code Analysis') {
 			steps{
 				echo '------------>Análisis de código estático<------------'
@@ -74,6 +75,7 @@ pipeline {
 	}
  
   }
+
 
   post {
     always {
