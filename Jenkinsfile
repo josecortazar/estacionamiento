@@ -13,7 +13,7 @@ pipeline {
 
   //Una sección que define las herramientas “preinstaladas” en Jenkins
   tools {
-    jdk 'JDK8_Centos' //Verisión preinstalada en la Configuración del Master
+    jdk 'JDK11_Centos' //Verisión preinstalada en la Configuración del Master
   }
 /*	Versiones disponibles
       JDK8_Mac
@@ -46,33 +46,35 @@ pipeline {
    		}
 	}
 
-    stage('Compile & Unit Tests') {
-        steps{
-        	sh './gradlew clean'
-            echo "------------>compile & Unit Tests<------------"
-            sh 'chmod +x gradlew'
-            sh './gradlew --b ./build.gradle test'
-        }
-    }
+	stage('Compile & Unit Tests') {
+		steps{
+			sh './gradlew clean'
+			echo "------------>compile & Unit Tests<------------"
+			sh 'chmod +x gradlew'
+			sh './gradlew --b ./build.gradle test'
+		}
+	}
 
 
     stage('Static Code Analysis') {
-        steps{
-            echo '------------>Análisis de código estático<------------'
-            withSonarQubeEnv('Sonar') {
-                sh "${tool name: 'SonarScanner', type:'hudson.plugins.sonar.SonarRunnerInstallation'}/bin/sonar-scanner"
-            }
-        }
-    }
+			steps{
+				echo '------------>Análisis de código estático<------------'
+				withSonarQubeEnv('Sonar') {
+				sh "${tool name: 'SonarScanner', type:'hudson.plugins.sonar.SonarRunnerInstallation'}/bin/sonar-scanner"
+			}
+	     }
+	}
 
 
-    stage('Build') {
-        steps{
-            echo "------------>Build<------------"
-            //Construir sin tarea test que se ejecutó previamente
-            sh './gradlew --b ./build.gradle build -x test'
-        }
-    }
+	stage('Build') {
+		steps{
+			echo "------------>Build<------------"
+			//Construir sin tarea test que se ejecutó previamente
+			sh './gradlew --b ./build.gradle build -x test'
+		}
+	}
+ 
+  }
 
 
   post {
@@ -80,11 +82,16 @@ pipeline {
       echo 'This will always run'
     }
     success {
-      echo 'This will run only if successful'
+   	 	echo 'This will run only if successful'
+		junit 'build/test-results/test/*.xml' //RUTA DE TUS ARCHIVOS .XML
+
     }
     failure {
-      echo 'This will run only if failed'
-    }
+		echo 'This will run only if failed'
+		mail (to: 'jose.cortazar@ceiba.com.co',subject: "Failed Pipeline:${currentBuild.fullDisplayName}",body: "Something is wrong with ${env.BUILD_URL}")
+		
+	}
+
     unstable {
       echo 'This will run only if the run was marked as unstable'
     }
